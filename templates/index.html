@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>ML API</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f1f1f1;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out; /* Fade-in animation */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        h1 {
+            font-family: 'Pacifico', cursive;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+            animation: slideInDown 0.5s ease-out; /* Slide-in animation */
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        select,
+        button {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: 'Hind', sans-serif;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            animation: pulse 1s infinite; /* Pulse animation */
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .prediction {
+            margin-top: 20px;
+            font-size: 16px;
+            animation: fadeIn 1s ease-out; /* Fade-in animation */
+        }
+
+        .prediction-item {
+            margin-bottom: 10px;
+            color: #007bff;
+            animation: slideInLeft 0.5s ease-out; /* Slide-in animation */
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .material-icons {
+            vertical-align: middle;
+            margin-left: 5px;
+            color: #007bff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Disease Prediction</h1>
+        <form autocomplete="off" action="{{ url_for('predict')}}" method="post">
+            <select id="autoc" name="symptom">
+                <option value="" disabled selected>Select Symptom 1</option>
+            </select>
+            <select id="autoc1" name="symptom1">
+                <option value="" disabled selected>Select Symptom 2</option>
+            </select>
+            <select id="autoc2" name="symptom2">
+                <option value="" disabled selected>Select Symptom 3</option>
+            </select>
+            <select id="autoc3" name="symptom3">
+                <option value="" disabled selected>Select Symptom 4</option>
+            </select>
+            <div>
+                <label for="es1">Select ML Model</label><br>
+                <select name="es1" id="es1">
+                    <option value="DecisionTree">DecisionTree</option>
+                    <option value="Randomforest">Randomforest</option>
+                    <option value="KNN">KNN</option>
+                    <option value="NaiveBayes">NaiveBayes</option>
+                    <option value="SVM">SVM</option>
+                    <option value="AllModels">All Models</option>
+                </select>
+                <button type="submit">Predict <i class="material-icons">send</i></button>
+            </div>
+        </form>
+        <div class="prediction">
+            <div class="prediction-item">{{ prediction_text0 }}<i class="material-icons">done</i></div>
+            <div class="prediction-item">{{ prediction_text1 }}<i class="material-icons">done</i></div>
+            <div class="prediction-item">{{ prediction_text2 }}<i class="material-icons">done</i></div>
+            <div class="prediction-item">{{ prediction_text3 }}<i class="material-icons">done</i></div>
+            <div class="prediction-item">{{ prediction_text4 }}<i class="material-icons">done</i></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var form = document.querySelector("form");
+
+            // Event listener for form submission
+            form.addEventListener("submit", function (event) {
+                event.preventDefault(); // Prevent default form submission behavior
+
+                // Get the selected ML model value
+                var selectedModel = document.getElementById("es1").value;
+
+                // Check if "All Models" is selected
+                if (selectedModel === "AllModels") {
+                    // Redirect to the appropriate route for all models
+                    window.location.href = "/AllModels";
+                } else {
+                    // Submit the form for single model prediction
+                    form.submit();
+                }
+            });
+
+            // Autocomplete function
+            function autocomplete(inp, arr) {
+                var currentFocus;
+                inp.addEventListener("input", function (e) {
+                    var a, b, i, val = this.value;
+                    closeAllLists();
+                    if (!val) {
+                        return false;
+                    }
+                    currentFocus = -1;
+                    a = document.createElement("DIV");
+                    a.setAttribute("id", this.id + "autocomplete-list");
+                    a.setAttribute("class", "autocomplete-items");
+                    this.parentNode.appendChild(a);
+                    for (i = 0; i < arr.length; i++) {
+                        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+                            b = document.createElement("DIV");
+                            b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+                            b.innerHTML += arr[i].substr(val.length);
+                            b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                            b.addEventListener("click", function (e) {
+                                inp.value = this.getElementsByTagName("input")[0].value;
+                                closeAllLists();
+                            });
+                            a.appendChild(b);
+                        }
+                    }
+                });
+                inp.addEventListener("keydown", function (e) {
+                    var x = document.getElementById(this.id + "autocomplete-list");
+                    if (x) x = x.getElementsByTagName("div");
+                    if (e.keyCode == 40) {
+                        currentFocus++;
+                        addActive(x);
+                    } else if (e.keyCode == 38) {
+                        currentFocus--;
+                        addActive(x);
+                    } else if (e.keyCode == 13) {
+                        e.preventDefault();
+                        if (currentFocus > -1) {
+                            if (x) x[currentFocus].click();
+                        }
+                    }
+                });
+
+                function addActive(x) {
+                    if (!x) return false;
+                    removeActive(x);
+                    if (currentFocus >= x.length) currentFocus = 0;
+                    if (currentFocus < 0) currentFocus = (x.length - 1);
+                    x[currentFocus].classList.add("autocomplete-active");
+                }
+
+                function removeActive(x) {
+                    for (var i = 0; i < x.length; i++) {
+                        x[i].classList.remove("autocomplete-active");
+                    }
+                }
+
+                function closeAllLists(elmnt) {
+                    var x = document.getElementsByClassName("autocomplete-items");
+                    for (var i = 0; i < x.length; i++) {
+                        if (elmnt != x[i] && elmnt != inp) {
+                            x[i].parentNode.removeChild(x[i]);
+                        }
+                    }
+                }
+            }
+
+            var symptoms = ["back_pain", "constipation", "abdominal_pain", "diarrhoea", "mild_fever", "yellow_urine", "yellowing_of_eyes", "acute_liver_failure", "fluid_overload", "swelling_of_stomach", "swelled_lymph_nodes", "malaise", "blurred_and_distorted_vision", "phlegm", "throat_irritation", "redness_of_eyes", "sinus_pressure", "runny_nose", "congestion", "chest_pain", "weakness_in_limbs", "fast_heart_rate", "pain_during_bowel_movements", "pain_in_anal_region", "bloody_stool", "irritation_in_anus", "neck_pain", "dizziness", "cramps", "bruising", "obesity", "swollen_legs", "swollen_blood_vessels", "puffy_face_and_eyes", "enlarged_thyroid", "brittle_nails", "swollen_extremeties", "excessive_hunger", "extra_marital_contacts", "drying_and_tingling_lips", "slurred_speech", "knee_pain", "hip_joint_pain", "muscle_weakness", "stiff_neck", "swelling_joints", "movement_stiffness", "spinning_movements", "loss_of_balance", "unsteadiness", "weakness_of_one_body_side", "loss_of_smell", "bladder_discomfort", "foul_smell_of urine", "continuous_feel_of_urine", "passage_of_gases", "internal_itching", "toxic_look_(typhos)", "depression", "irritability", "muscle_pain", "altered_sensorium", "red_spots_over_body", "belly_pain", "abnormal_menstruation", "dischromic _patches", "watering_from_eyes", "increased_appetite", "polyuria", "family_history", "mucoid_sputum", "rusty_sputum", "lack_of_concentration", "visual_disturbances", "receiving_blood_transfusion", "receiving_unsterile_injections", "coma", "stomach_bleeding", "distention_of_abdomen", "history_of_alcohol_consumption", "fluid_overload", "blood_in_sputum", "prominent_veins_on_calf", "palpitations", "painful_walking", "pus_filled_pimples", "blackheads", "scurring", "skin_peeling", "silver_like_dusting", "small_dents_in_nails", "inflammatory_nails", "blister", "red_sore_around_nose", "yellow_crust_ooze"];
+
+            var select = document.getElementById("autoc");
+            var select1 = document.getElementById("autoc1");
+            var select2 = document.getElementById("autoc2");
+            var select3 = document.getElementById("autoc3");
+
+            symptoms.forEach(function (symptom) {
+                var option = document.createElement("option");
+                option.text = symptom.replace(/_/g, " ").replace(/\b\w/g, function (txt) {
+                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                });
+                option.value = symptom;
+                select.add(option);
+            });
+
+            symptoms.forEach(function (symptom1) {
+                var option = document.createElement("option");
+                option.text = symptom1.replace(/_/g, " ").replace(/\b\w/g, function (txt) {
+                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                });
+                option.value = symptom1;
+                select1.add(option);
+            });
+
+            symptoms.forEach(function (symptom2) {
+                var option = document.createElement("option");
+                option.text = symptom2.replace(/_/g, " ").replace(/\b\w/g, function (txt) {
+                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                });
+                option.value = symptom2;
+                select2.add(option);
+            });
+
+            symptoms.forEach(function (symptom3) {
+                var option = document.createElement("option");
+                option.text = symptom3.replace(/_/g, " ").replace(/\b\w/g, function (txt) {
+                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                });
+                option.value = symptom3;
+                select3.add(option);
+            });
+
+        });
+    </script>
+</body>
+
+</html>
